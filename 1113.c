@@ -63,11 +63,11 @@ static PT_THREAD (protothread_timer(struct pt *pt))
         // yield time 1 second
         PT_YIELD_TIME_msec(1000) ;
         sys_time_seconds++;
-        tft_setCursor(3, 3);
-            tft_setTextColor(ILI9340_WHITE);  tft_setTextSize(1);
-            tft_fillRoundRect(3,3, 180, 24, 1, ILI9340_BLACK);// x,y,w,h,radius,color
-            sprintf(buffer,"Time:%d \n",sys_time_seconds);
-            tft_writeString(buffer);
+//        tft_setCursor(3, 3);
+//            tft_setTextColor(ILI9340_WHITE);  tft_setTextSize(1);
+//            tft_fillRoundRect(3,3, 180, 24, 1, ILI9340_BLACK);// x,y,w,h,radius,color
+//            sprintf(buffer,"Time:%d \n",sys_time_seconds);
+//            tft_writeString(buffer);
 
         // NEVER exit while
       } // END WHILE(1)
@@ -83,17 +83,17 @@ static PT_THREAD (protothread_control(struct pt *pt))
           adc_val1 = ReadADC10(0);
           adc_val2 = ReadADC10(1);
 //          adc_val3 = ReadADC10(2);
+          tft_fillScreen(ILI9340_BLACK);
           tft_setTextColor(ILI9340_WHITE);  tft_setTextSize(1);
-          tft_setCursor(20, 3);
-          sprintf(buffer,"ADC1Reading: %d\n",adc_val1);
-          tft_writeString(buffer);
-          tft_setCursor(40, 3);
-          sprintf(buffer,"ADC1Reading: %d\n",adc_val2);
+         tft_setCursor(40, 3);
+          sprintf(buffer,"ADC1Reading: %d\n    ADC1Reading: %d\n",adc_val1,adc_val2);
           tft_writeString(buffer);
 //          tft_setCursor(50, 3);
 //          sprintf(buffer,"ADC1Reading: %d\n",adc_val3);
 //          tft_writeString(buffer);
+          PT_YIELD_TIME_msec(500) ;
       }
+    PT_END(pt);
 }
 
 // === Main  ======================================================
@@ -124,7 +124,7 @@ void main(void) {
 
 	// define setup parameters for OpenADC10
 	// ADC ref external  | disable offset test | disable scan mode | do 1 sample | use single buf | alternate mode off
-	#define PARAM2  ADC_VREF_AVDD_AVSS | ADC_OFFSET_CAL_DISABLE | ADC_SCAN_OFF | ADC_SAMPLES_PER_INT_1 | ADC_ALT_BUF_OFF | ADC_ALT_INPUT_OFF
+	#define PARAM2  ADC_VREF_AVDD_AVSS | ADC_OFFSET_CAL_DISABLE | ADC_SCAN_OFF | ADC_SAMPLES_PER_INT_2 | ADC_ALT_BUF_OFF | ADC_ALT_INPUT_OFF
         //
 	// Define setup parameters for OpenADC10
         // use peripherial bus clock | set sample time | set ADC clock divider
@@ -162,4 +162,3 @@ void main(void) {
 } // main
 
 // === end  ======================================================
-
