@@ -56,8 +56,7 @@ static struct pt pt_timer, pt_control;
 int sys_time_seconds ;
 // === Timer Thread =================================================
 // update a 1 second tick counter
-static PT_THREAD (protothread_timer(struct pt *pt))
-{
+static PT_THREAD (protothread_timer(struct pt *pt)){
     PT_BEGIN(pt);
       while(1) {
         // yield time 1 second
@@ -79,26 +78,24 @@ static PT_THREAD (protothread_timer(struct pt *pt))
 static PT_THREAD (protothread_control(struct pt *pt))
 {
     PT_BEGIN(pt);
+    
       while(1) {
           adc_val1 = ReadADC10(0);
           adc_val2 = ReadADC10(1);
-//          adc_val3 = ReadADC10(2);
+          adc_val3 = ReadADC10(2);
           tft_fillScreen(ILI9340_BLACK);
           tft_setTextColor(ILI9340_WHITE);  tft_setTextSize(1);
-         tft_setCursor(40, 3);
-          sprintf(buffer,"ADC1Reading: %d\n    ADC1Reading: %d\n",adc_val1,adc_val2);
+          tft_setCursor(40, 40);
+          sprintf(buffer,"ADC1Reading: %d\n   ADC2Reading: %d\n   ADC3Reading: %d\n",adc_val1,adc_val2,adc_val3);
           tft_writeString(buffer);
-//          tft_setCursor(50, 3);
-//          sprintf(buffer,"ADC1Reading: %d\n",adc_val3);
-//          tft_writeString(buffer);
-          PT_YIELD_TIME_msec(500) ;
+          PT_YIELD_TIME_msec(500);
       }
     PT_END(pt);
 }
 
 // === Main  ======================================================
 
-void main(void) {
+void main() {
   
    //SYSTEMConfigPerformance(PBCLK);
   
@@ -116,6 +113,7 @@ void main(void) {
 	CloseADC10();	// ensure the ADC is off before setting the configuration
 
 	// define setup parameters for OpenADC10
+    
 	// Turn module on | ouput in integer | trigger mode auto | enable autosample
         // ADC_CLK_AUTO -- Internal counter ends sampling and starts conversion (Auto convert)
         // ADC_AUTO_SAMPLING_ON -- Sampling begins immediately after last conversion completes; SAMP bit is automatically set
@@ -124,7 +122,7 @@ void main(void) {
 
 	// define setup parameters for OpenADC10
 	// ADC ref external  | disable offset test | disable scan mode | do 1 sample | use single buf | alternate mode off
-	#define PARAM2  ADC_VREF_AVDD_AVSS | ADC_OFFSET_CAL_DISABLE | ADC_SCAN_OFF | ADC_SAMPLES_PER_INT_2 | ADC_ALT_BUF_OFF | ADC_ALT_INPUT_OFF
+	#define PARAM2  ADC_VREF_AVDD_AVSS | ADC_OFFSET_CAL_DISABLE | ADC_SCAN_ON | ADC_SAMPLES_PER_INT_3 | ADC_ALT_BUF_OFF | ADC_ALT_INPUT_OFF
         //
 	// Define setup parameters for OpenADC10
         // use peripherial bus clock | set sample time | set ADC clock divider
@@ -134,15 +132,15 @@ void main(void) {
 
 	// define setup parameters for OpenADC10
 	// set AN11 and  as analog inputs
-	#define PARAM4	 ENABLE_AN10_ANA | ENABLE_AN9_ANA 
+	#define PARAM4	 ENABLE_AN9_ANA | ENABLE_AN5_ANA | ENABLE_AN11_ANA
 
 	// define setup parameters for OpenADC10
 	// do not assign channels to scan
-	#define PARAM5	SKIP_SCAN_ALL
+	#define PARAM5	SKIP_SCAN_AN0 |SKIP_SCAN_AN1 |SKIP_SCAN_AN2 |SKIP_SCAN_AN3 |SKIP_SCAN_AN4 |SKIP_SCAN_AN10 |SKIP_SCAN_AN6 |SKIP_SCAN_AN7 |SKIP_SCAN_AN8 
 
 	// use ground as neg ref for A | use AN11 for input A     
 	// configure to sample AN11 
-	SetChanADC10( ADC_CH0_NEG_SAMPLEA_NVREF | ADC_CH0_POS_SAMPLEA_AN9 | ADC_CH0_NEG_SAMPLEB_NVREF | ADC_CH0_POS_SAMPLEB_AN10 ); // configure to sample AN11 
+	SetChanADC10( ADC_CH0_NEG_SAMPLEA_NVREF ); // configure to sample AN11 
 	OpenADC10( PARAM1, PARAM2, PARAM3, PARAM4, PARAM5 ); // configure ADC using the parameters defined above
 
 	EnableADC10(); // Enable the ADC
@@ -159,6 +157,7 @@ void main(void) {
       PT_SCHEDULE(protothread_control(&pt_control));
   }
       
+  
 } // main
 
 // === end  ======================================================
