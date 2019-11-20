@@ -22,10 +22,10 @@
 #include <stdlib.h>
 // fixed point types
 #include <stdfix.h>
+#include <plib.h>
 // need for sine function and for rounding
 #include <math.h>
-////////////////////////////////////
-#define	SYS_FREQ 40000000
+///////////////////////////////////
 // lock out timer interrupt during spi comm to port expander
 // This is necessary if you use the SPI2 channel in an ISR
 #define start_spi2_critical_section INTEnable(INT_T2, 0);
