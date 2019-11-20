@@ -1,21 +1,9 @@
 /*
- * File:        TFT, keypad, DAC, LED, PORT EXPANDER test
- *              With serial interface to PuTTY console
- *              DMA GetMachineBuffer
- *              !!!Modified scheduler!!!
+ * File:        Final Pro
  * 
- * Author:      Bruce Land
+ * Author:      Bruce Land modified by Ximeng Zhang
  * For use with Sean Carroll's Big Board
  * http://people.ece.cornell.edu/land/courses/ece4760/PIC32/target_board.html
- * Target PIC:  PIC32MX250F128B
- */
-
-/*
- * File:        Test of compiler fixed point
- * Author:      Bruce Land modified by Greg Kaiser, Matthew Daniel and Ximeng Zhang
- * Adapted from:
- *              main.c by
- * Author:      Syed Tahmid Mahbub
  * Target PIC:  PIC32MX250F128B
  */
 
@@ -37,7 +25,7 @@
 // need for sine function and for rounding
 #include <math.h>
 ////////////////////////////////////
-
+#define	SYS_FREQ 40000000
 // lock out timer interrupt during spi comm to port expander
 // This is necessary if you use the SPI2 channel in an ISR
 #define start_spi2_critical_section INTEnable(INT_T2, 0);
@@ -48,6 +36,7 @@ char buffer[60];
 int adc_val1 = 0;
 int adc_val2 = 0;
 int adc_val3 = 0;
+
 
 // === thread structures ============================================
 // thread control structs
