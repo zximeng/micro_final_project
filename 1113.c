@@ -1,6 +1,6 @@
 /*
- * File:        Final Pro
- * 
+ * File:        Final Project 
+ *  		Capacitive sensing robot arm
  * Author:      Bruce Land modified by Ximeng Zhang
  * For use with Sean Carroll's Big Board
  * http://people.ece.cornell.edu/land/courses/ece4760/PIC32/target_board.html
