@@ -44,11 +44,10 @@ int adc_val3 = 0;
 // one microsec
 #define wait40 wait20;wait20;
 
-
 // === thread structures ============================================
 // thread control structs
 // note that UART input and output are threads
-static struct pt pt_timer, pt_control;
+static struct pt pt_timer, pt_control,pt_ctmu;
 int sys_time_seconds ;
 // === Timer Thread =================================================
 // update a 1 second tick counter
@@ -76,22 +75,23 @@ static PT_THREAD (protothread_control(struct pt *pt))
     PT_BEGIN(pt);
     
       while(1) {
-          adc_val1 = ReadADC10(0);
+          //adc_val1 = ReadADC10(0); 
+          // adc_val1 is now CTMU
           adc_val2 = ReadADC10(1);
           adc_val3 = ReadADC10(2);
-          tft_fillScreen(ILI9340_BLACK);
+          tft_fillRoundRect(0,140, 240, 30, 1, ILI9340_BLACK);// x,y,w,h,radius,color
           tft_setTextColor(ILI9340_WHITE);  tft_setTextSize(1);
-          tft_setCursor(40, 40);
-          sprintf(buffer,"ADC1Reading: %d\n   ADC2Reading: %d\n   ADC3Reading: %d\n",adc_val1,adc_val2,adc_val3);
+          tft_setCursor(0, 140);
+          sprintf(buffer,"ADC2Reading: %d\n   ADC3Reading: %d\n",adc_val2,adc_val3);
           tft_writeString(buffer);
-          PT_YIELD_TIME_msec(500);
+          PT_YIELD_TIME_msec(100);
       }
     PT_END(pt);
 }
 
 // === CTMU Thread =============================================
 // set up capacitance measurement
-static int key_pressed ;
+
 static PT_THREAD (protothread_ctmu(struct pt *pt))
 #define Vdd 3.3
 #define ADC_max 1023.0
@@ -115,43 +115,34 @@ static PT_THREAD (protothread_ctmu(struct pt *pt))
       CTMUCONbits.ON = 1; // Turn on CTMU
       
       while(1) {
-
         PT_YIELD_TIME_msec(200);
-
         // choose a current level
         // using 55e-6 current
         I_set = I[3];
         CTMUCONbits.IRNG = 3;
-
         // dischrge the cap
-        AcquireADC10(); // start ADC sampling -- connects ADC sample cap to circuit
+        AcquireADC10(0); // start ADC sampling -- connects ADC sample cap to circuit
         // and discharge
         CTMUCONbits.IDISSEN = 1; // start drain of circuit
         PT_YIELD_TIME_msec(1); // wait for discharge
         CTMUCONbits.IDISSEN = 0; // End drain of circuit
-
         // start charging and wait 2 microsecs
         CTMUCONbits.EDG1STAT = 1;
         wait40;wait40;
         // end charging
         CTMUCONbits.EDG1STAT = 0;
-
         // stop samping and start conversion
         // note that in:
         //#define PARAM1  ADC_FORMAT_INTG16 | ADC_CLK_MANUAL | ADC_AUTO_SAMPLING_OFF
         // clock is manual and auto sampling is off
-        ConvertADC10(); // end sampling & start conversion
-       
+        ConvertADC10(0); // end sampling & start conversion       
         // wait for complete
-        while (!AD1CON1bits.DONE){}; // Wait for ADC conversion
-        
+        while (!AD1CON1bits.DONE){}; // Wait for ADC conversion       
         // read the result of channel from the idle buffer
-        raw_adc =  ReadADC10(0) ;
-        
+        raw_adc =  ReadADC10(0) ;        
         // convert raw to resistance ADC reads 11 at zero resistance
         // Vref = Vdd = 3.3 ; 2 microsec charge pulse
         C = (I_set * 2e-6) / ((float)(raw_adc)/ADC_max * Vdd)  ; // c = q/v
-
         // draw capacitance results
         // erase
         tft_fillRoundRect(0,100, 240, 30, 1, ILI9340_BLACK);// x,y,w,h,radius,color
@@ -217,6 +208,7 @@ void main() {
 	EnableADC10(); // Enable the ADC
     PT_INIT(&pt_timer);
     PT_INIT(&pt_control);
+    PT_INIT(&pt_ctmu);
      // init the display
   tft_init_hw();
   tft_begin();
@@ -226,6 +218,7 @@ void main() {
   while (1){
       PT_SCHEDULE(protothread_timer(&pt_timer));
       PT_SCHEDULE(protothread_control(&pt_control));
+      PT_SCHEDULE(protothread_control(&pt_ctmu));
   }
       
   
