@@ -36,6 +36,13 @@ char buffer[60];
 int adc_val1 = 0;
 int adc_val2 = 0;
 int adc_val3 = 0;
+// some precise, fixed, short delays
+// to use for cap charging time
+#define NOP asm("nop");
+// 1/2 microsec
+#define wait20 NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;NOP;
+// one microsec
+#define wait40 wait20;wait20;
 
 
 // === thread structures ============================================
