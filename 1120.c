@@ -53,7 +53,7 @@ float C;
 // === thread structures ============================================
 // thread control structs
 // note that UART input and output are threads
-static struct pt pt_timer, pt_control, pt_ctmu;
+static struct pt pt_timer, pt_control;
 int sys_time_seconds ;
 // === Timer Thread =================================================
 // update a 1 second tick counter
