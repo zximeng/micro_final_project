@@ -30,13 +30,16 @@
 // string buffer
 char buffer[60];
 //initialize control signals
-int adc_val1 = 0;
+static double alpha = 0.5;
 int adc_val2 = 0;
+int old_val2 = 0;
 int adc_val3 = 0;
- int raw_adc;
-      static float I[4]={550e-6, 0.55e-6, 5.5e-6, 55e-6} ; // current settings in amps
-      static float I_set;
-       float C;
+int old_val3 = 0;
+int raw_adc = 0;
+int old_raw = 0;
+static float I[4]={550e-6, 0.55e-6, 5.5e-6, 55e-6} ; // current settings in amps
+static float I_set;
+float C;
 // some precise, fixed, short delays
 // to use for cap charging time
 #define NOP asm("nop");
@@ -91,7 +94,9 @@ static PT_THREAD (protothread_control(struct pt *pt))
           ConvertADC10(); // end sampling & start conversion       
         // wait for complete
         while (!AD1CON1bits.DONE){}; // Wait for ADC conversion
-          adc_val2 = ReadADC10(0);
+          adc_val2 = ReadADC10(0); // get the value for 1st control 
+          adc_val2 = (int)(old_val2 * alpha + (1-alpha)*adc_val2);// low pass the result
+          old_val2 = adc_val2;
           SetChanADC10(ADC_CH0_POS_SAMPLEA_AN11 | ADC_CH0_NEG_SAMPLEA_NVREF);
           PT_YIELD_TIME_msec(3); // wait
           wait40;wait40;
@@ -100,6 +105,8 @@ static PT_THREAD (protothread_control(struct pt *pt))
         // wait for complete
         while (!AD1CON1bits.DONE){}; // Wait for ADC conversion
           adc_val3 = ReadADC10(0);
+          adc_val3 = (int)(old_val3 * alpha + (1-alpha)*adc_val3);// low pass the result
+          old_val3 = adc_val3;
           tft_fillRoundRect(0,140, 240, 30, 1, ILI9340_BLACK);// x,y,w,h,radius,color
           tft_setTextColor(ILI9340_WHITE);  tft_setTextSize(1);
           tft_setCursor(0, 140);
@@ -130,7 +137,9 @@ static PT_THREAD (protothread_control(struct pt *pt))
         // wait for complete
         while (!AD1CON1bits.DONE){}; // Wait for ADC conversion       
         // read the result of channel from the idle buffer
-        raw_adc =  ReadADC10(0) ;        
+        raw_adc =  ReadADC10(0) ; 
+        raw_adc = (int)(old_raw * alpha + (1-alpha)*raw_adc);// low pass the result
+        old_raw = raw_adc;
         // convert raw to resistance ADC reads 11 at zero resistance
         // Vref = Vdd = 3.3 ; 2 microsec charge pulse
         C = (I_set * 2e-6) / ((float)(raw_adc)/ADC_max * Vdd)  ; // c = q/v
