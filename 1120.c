@@ -1,6 +1,7 @@
 /*
- * File:        test CTMU
- * Author:      Bruce Land
+ * File:        Final Project
+ *              Capacitive sensing Robot Arm
+ * Author:      Bruce Land modified by Ximeng Zhang
  * Adapted from:
  *              main.c by
  * Author:      Syed Tahmid Mahbub
@@ -104,9 +105,6 @@ static PT_THREAD (protothread_control(struct pt *pt))
           tft_setCursor(0, 140);
           sprintf(buffer,"ADC2Reading: %d\nADC3Reading: %d\n",adc_val2,adc_val3);
           tft_writeString(buffer);
-//          tft_setCursor(0, 160);
-//          sprintf(buffer,"%d %6.2e", raw_adc, C);
-//          tft_writeString(buffer);
           PT_YIELD_TIME_msec(100);
         // choose a current level
         // using 55e-6 current
@@ -149,76 +147,7 @@ static PT_THREAD (protothread_control(struct pt *pt))
     PT_END(pt);
 }
 
-// === CTMU Thread =============================================
-// set up capacitance measurement
 
-//static PT_THREAD (protothread_ctmu(struct pt *pt))
-//
-//{
-//    PT_BEGIN(pt);
-////      static int raw_adc;
-////      static float I[4]={550e-6, 0.55e-6, 5.5e-6, 55e-6} ; // current settings in amps
-////      static float I_set;
-////      static float C;
-//
-//      // CTMU Setup
-//      // Current Range IRNG 0x3 => 100x, approx 55 microamps;
-//      // IRNG 0x2 => 10x, approx 5.5 microamps
-//      // IRNG 0x1 => 1x, approx 0.55 microamps
-//      // IRNG 0x00 => 1000x, approx 550 microamps
-//      
-//      tft_setCursor(0, 80);
-//      tft_setTextColor(ILI9340_WHITE);  tft_setTextSize(1);
-//      tft_writeString("ADC     C\n");
-//
-//      CTMUCONbits.ON = 1; // Turn on CTMU
-//      
-//      while(1) {
-//
-//     
-//        PT_YIELD_TIME_msec(100);
-//        // choose a current level
-//        // using 55e-6 current
-//        I_set = I[3];
-//        CTMUCONbits.IRNG = 3;
-//        SetChanADC10(ADC_CH0_POS_SAMPLEA_AN5 | ADC_CH0_NEG_SAMPLEA_NVREF);
-//        // dischrge the cap
-//        AcquireADC10(); // start ADC sampling -- connects ADC sample cap to circuit
-//        // and discharge
-//        CTMUCONbits.IDISSEN = 1; // start drain of circuit
-//        PT_YIELD_TIME_msec(1); // wait for discharge
-//        CTMUCONbits.IDISSEN = 0; // End drain of circuit
-//        // start charging and wait 2 microsecs
-//        CTMUCONbits.EDG1STAT = 1;
-//        wait40;wait40;
-//        // end charging
-//        CTMUCONbits.EDG1STAT = 0;
-//        // stop samping and start conversion
-//        // note that in:
-//        //#define PARAM1  ADC_FORMAT_INTG16 | ADC_CLK_MANUAL | ADC_AUTO_SAMPLING_OFF
-//        // clock is manual and auto sampling is off
-//        ConvertADC10(); // end sampling & start conversion       
-//        // wait for complete
-//        while (!AD1CON1bits.DONE){}; // Wait for ADC conversion       
-//        // read the result of channel from the idle buffer
-//        raw_adc =  ReadADC10(0) ;        
-//        // convert raw to resistance ADC reads 11 at zero resistance
-//        // Vref = Vdd = 3.3 ; 2 microsec charge pulse
-//        C = (I_set * 2e-6) / ((float)(raw_adc)/ADC_max * Vdd)  ; // c = q/v
-//        // draw capacitance results
-//        // erase
-//        //tft_fillRoundRect(0,100, 240, 30, 1, ILI9340_BLACK);// x,y,w,h,radius,color
-//        // update
-//        tft_setCursor(0, 100);
-//        tft_setTextColor(ILI9340_WHITE); tft_setTextSize(2);
-//        sprintf(buffer,"%d %6.2e", raw_adc, C);
-//        tft_writeString(buffer);
-//        // NEVER exit while
-//      } // END WHILE(1)
-//  PT_END(pt);
-//} // ctmu thread
-
-// === Main  ======================================================
 
 void main() {
   
