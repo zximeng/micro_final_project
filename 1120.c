@@ -1,5 +1,5 @@
 /*
- * File:        Final Project
+ * File:        Final Project 11/21/2019
  *              Capacitive sensing Robot Arm
  * Author:      Bruce Land modified by Ximeng Zhang
  * Adapted from:
@@ -30,7 +30,7 @@
 // string buffer
 char buffer[60];
 //initialize control signals
-static double alpha = 0.5;
+static double alpha = 0.9;
 int adc_val2 = 0;
 int old_val2 = 0;
 int adc_val3 = 0;
@@ -53,7 +53,7 @@ float C;
 // === thread structures ============================================
 // thread control structs
 // note that UART input and output are threads
-static struct pt pt_timer, pt_control;
+static struct pt pt_timer, pt_control, pt_ctmu;
 int sys_time_seconds ;
 // === Timer Thread =================================================
 // update a 1 second tick counter
@@ -88,7 +88,7 @@ static PT_THREAD (protothread_control(struct pt *pt))
           //adc_val1 = ReadADC10(0); 
           // adc_val1 is now CTMU
           SetChanADC10(ADC_CH0_POS_SAMPLEA_AN9 | ADC_CH0_NEG_SAMPLEA_NVREF);
-          PT_YIELD_TIME_msec(3); // wait
+         // PT_YIELD_TIME_msec(1); // wait
           wait40;wait40;
           AcquireADC10(); // start ADC sampling -- connects ADC sample cap to circuit
           ConvertADC10(); // end sampling & start conversion       
@@ -98,7 +98,7 @@ static PT_THREAD (protothread_control(struct pt *pt))
           adc_val2 = (int)(old_val2 * alpha + (1-alpha)*adc_val2);// low pass the result
           old_val2 = adc_val2;
           SetChanADC10(ADC_CH0_POS_SAMPLEA_AN11 | ADC_CH0_NEG_SAMPLEA_NVREF);
-          PT_YIELD_TIME_msec(3); // wait
+          //PT_YIELD_TIME_msec(3); // wait
           wait40;wait40;
           AcquireADC10(); // start ADC sampling -- connects ADC sample cap to circuit
           ConvertADC10(); // end sampling & start conversion       
@@ -107,16 +107,11 @@ static PT_THREAD (protothread_control(struct pt *pt))
           adc_val3 = ReadADC10(0);
           adc_val3 = (int)(old_val3 * alpha + (1-alpha)*adc_val3);// low pass the result
           old_val3 = adc_val3;
-          tft_fillRoundRect(0,140, 240, 30, 1, ILI9340_BLACK);// x,y,w,h,radius,color
-          tft_setTextColor(ILI9340_WHITE);  tft_setTextSize(1);
-          tft_setCursor(0, 140);
-          sprintf(buffer,"ADC2Reading: %d\nADC3Reading: %d\n",adc_val2,adc_val3);
-          tft_writeString(buffer);
-          PT_YIELD_TIME_msec(100);
+          //PT_YIELD_TIME_msec(100);
         // choose a current level
         // using 55e-6 current
-        I_set = I[3];
-        CTMUCONbits.IRNG = 3;
+        I_set = I[2];
+        CTMUCONbits.IRNG = 2;
         SetChanADC10(ADC_CH0_POS_SAMPLEA_AN5 | ADC_CH0_NEG_SAMPLEA_NVREF);
         // dischrge the cap
         AcquireADC10(); // start ADC sampling -- connects ADC sample cap to circuit
@@ -147,11 +142,17 @@ static PT_THREAD (protothread_control(struct pt *pt))
         // erase
         //tft_fillRoundRect(0,100, 240, 30, 1, ILI9340_BLACK);// x,y,w,h,radius,color
         // update
+        tft_fillRoundRect(0,140, 240, 30, 1, ILI9340_BLACK);// x,y,w,h,radius,color
+        tft_setTextColor(ILI9340_WHITE);  tft_setTextSize(2);
+        tft_setCursor(0, 140);
+        sprintf(buffer,"ADC2Reading: %d\nADC3Reading: %d\n",adc_val2,adc_val3);
+        tft_writeString(buffer);
         tft_setCursor(0, 100);
         tft_fillRoundRect(0,100, 240, 30, 1, ILI9340_BLACK);
         tft_setTextColor(ILI9340_WHITE); tft_setTextSize(2);
         sprintf(buffer,"%d %6.2e", raw_adc, C);
         tft_writeString(buffer);
+        PT_YIELD_TIME_msec(10);
       }
     PT_END(pt);
 }
@@ -181,7 +182,7 @@ void main() {
         // ADC_CLK_AUTO -- Internal counter ends sampling and starts conversion (Auto convert)
         // ADC_AUTO_SAMPLING_ON -- Sampling begins immediately after last conversion completes; SAMP bit is automatically set
         // ADC_AUTO_SAMPLING_OFF -- Sampling begins with AcquireADC10();
-        #define PARAM1  ADC_FORMAT_INTG16 | ADC_CLK_AUTO | ADC_AUTO_SAMPLING_ON //want fast adc read, so auto sampling is on
+        #define PARAM1  ADC_FORMAT_INTG16 | ADC_CLK_MANUAL | ADC_AUTO_SAMPLING_OFF //want fast adc read, so auto sampling is on
 
 	// define setup parameters for OpenADC10
 	// ADC ref external  | disable offset test | disable scan mode | do 1 sample | use single buf | alternate mode off
