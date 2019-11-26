@@ -150,6 +150,8 @@ static PT_THREAD (protothread_control(struct pt *pt))
     while (!AD1CON1bits.DONE){}; // Wait for ADC conversion
     adc_val2 = ReadADC10(0); // get the value for 1st control 
     adc_val2 = (int)(old_val2 * alpha + (1-alpha)*adc_val2);// low pass the result
+    dutycycle1= (int)((int)(adc_val2  * (390 - 78))/1023 + 78);
+    SetDCOC1PWM(dutycycle1);0
     old_val2 = adc_val2;
     SetChanADC10(ADC_CH0_POS_SAMPLEA_AN11 | ADC_CH0_NEG_SAMPLEA_NVREF);
     //PT_YIELD_TIME_msec(3); // wait
@@ -160,6 +162,9 @@ static PT_THREAD (protothread_control(struct pt *pt))
     while (!AD1CON1bits.DONE){}; // Wait for ADC conversion
     adc_val3 = ReadADC10(0);
     adc_val3 = (int)(old_val3 * alpha + (1-alpha)*adc_val3);// low pass the result
+    dutycycle2= (int)((int)(adc_val3  * (390 - 78))/1023 + 78);
+    SetDCOC2PWM(dutycycle2);
+
     old_val3 = adc_val3;
     //PT_YIELD_TIME_msec(100);
     // choose a current level
@@ -196,10 +201,10 @@ static PT_THREAD (protothread_control(struct pt *pt))
     // erase
     //tft_fillRoundRect(0,100, 240, 30, 1, ILI9340_BLACK);// x,y,w,h,radius,color
     // update
-    tft_fillRoundRect(0,140, 240, 30, 1, ILI9340_BLACK);// x,y,w,h,radius,color
+    tft_fillRoundRect(0,140, 240, 80, 1, ILI9340_BLACK);// x,y,w,h,radius,color
     tft_setTextColor(ILI9340_WHITE);  tft_setTextSize(2);
     tft_setCursor(0, 140);
-    sprintf(buffer,"ADC2Reading: %d\nADC3Reading: %d\n",adc_val2,adc_val3);
+    sprintf(buffer,"ADC2Reading: %d\nADC3Reading: %d\n D1Reading: %d\n D2Reading: %d\n ",adc_val2,adc_val3,dutycycle1,dutycycle2);
     tft_writeString(buffer);
     tft_setCursor(0, 100);
     tft_fillRoundRect(0,100, 240, 30, 1, ILI9340_BLACK);
@@ -259,7 +264,7 @@ void main() {
 	// configure to sample AN11 
 	SetChanADC10( ADC_CH0_NEG_SAMPLEA_NVREF ); // configure to sample AN11 
 	OpenADC10( PARAM1, PARAM2, PARAM3, PARAM4, PARAM5 ); // configure ADC using the parameters defined above
-
+    EnableADC10(); // Enable the ADC
   // ========PWM Setup ==========
   // turn on TIMER2
   OpenTimer2(T2_ON | T2_SOURCE_INT | T2_PS_1_256, PWM_Pulse_Width_Cycles);
@@ -281,8 +286,8 @@ void main() {
   // GROUP 2,   output TO RPB 8
   PPSOutput(2, RPB8, OC2);
   // set dutycycles for testing
-  SetDCOC2PWM(1000);
-  SetDCOC1PWM(1000); //for testing   
+  //SetDCOC2PWM(2000);
+  //SetDCOC1PWM(2000); //for testing   
   // clear flag to let run 
   mT2ClearIntFlag();
 
@@ -290,7 +295,6 @@ void main() {
 // ========end PWM Setup ==========
 
 
-	EnableADC10(); // Enable the ADC
   PT_INIT(&pt_timer);
   PT_INIT(&pt_control);
   PT_INIT(&pt_screen);
