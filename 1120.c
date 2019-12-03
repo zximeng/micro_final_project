@@ -64,9 +64,8 @@ float C;
 #define clockspeed 40000000 //40MHz clock
 #define PWM_Pulse_Width_Ms 20
 #define PWM_Pulse_Width_Cycles (int)800000/256 // 20ms clock timer
-#define PWM_Min  (int)(PWM_Pulse_Width_Cycles / 40)
-#define PWM_Max (int)(PWM_Pulse_Width_Cycles / 8)
-#define ADC_2_PWM (int)((adc) adc/1023 * (PWM_Max - PWM_Min)) // input adc value and output cycles to output to PWM
+
+
 
 //== Timer 2 interrupt handler ===========================================
 volatile SpiChannel spiChn = SPI_CHANNEL2 ; // the SPI channel to use
@@ -139,6 +138,7 @@ static PT_THREAD (protothread_control(struct pt *pt))
   tft_writeString("ADC     C\n");
   CTMUCONbits.ON = 1; // Turn on CTMU
   while(1) {
+//===============Getting the first Control ADC value ==========================
     //adc_val1 = ReadADC10(0); 
     // adc_val1 is now CTMU
     SetChanADC10(ADC_CH0_POS_SAMPLEA_AN9 | ADC_CH0_NEG_SAMPLEA_NVREF);
@@ -150,9 +150,17 @@ static PT_THREAD (protothread_control(struct pt *pt))
     while (!AD1CON1bits.DONE){}; // Wait for ADC conversion
     adc_val2 = ReadADC10(0); // get the value for 1st control 
     adc_val2 = (int)(old_val2 * alpha + (1-alpha)*adc_val2);// low pass the result
-    dutycycle1= (int)((int)(adc_val2  * (390 - 78))/1023 + 78);
-    SetDCOC1PWM(dutycycle1);0
+    dutycycle1= (int)((int)(adc_val2  * (390 - 78))/1023 + 78);// This code converts adc value to duty cycle.
+    // the smallest duty cycle is 78, highest is 390
+    // by calculating 800000 / 256 = 3125 ===> full duty cycle
+    // our Motor :
+    //	  Pulse Width: 500-2500
+    //	  Duty Ratio: 0.5ms-2.5ms
+    //	  Pulse Period: 20ms
+    //    Thus, 3125/40 ~= 78, 3125/8 ~= 390
+    SetDCOC1PWM(dutycycle1);
     old_val2 = adc_val2;
+//===============Getting the second Control ADC value ==========================
     SetChanADC10(ADC_CH0_POS_SAMPLEA_AN11 | ADC_CH0_NEG_SAMPLEA_NVREF);
     //PT_YIELD_TIME_msec(3); // wait
     wait40;wait40;
@@ -166,6 +174,7 @@ static PT_THREAD (protothread_control(struct pt *pt))
     SetDCOC2PWM(dutycycle2);
 
     old_val3 = adc_val3;
+//===============Getting the CTMU ADC value ==========================
     //PT_YIELD_TIME_msec(100);
     // choose a current level
     // using 55e-6 current
@@ -198,9 +207,7 @@ static PT_THREAD (protothread_control(struct pt *pt))
     // Vref = Vdd = 3.3 ; 2 microsec charge pulse
     C = (I_set * 2e-6) / ((float)(raw_adc)/ADC_max * Vdd)  ; // c = q/v
     // draw capacitance results
-    // erase
-    //tft_fillRoundRect(0,100, 240, 30, 1, ILI9340_BLACK);// x,y,w,h,radius,color
-    // update
+//==================== update outputs on TFT screen =====================
     tft_fillRoundRect(0,140, 240, 80, 1, ILI9340_BLACK);// x,y,w,h,radius,color
     tft_setTextColor(ILI9340_WHITE);  tft_setTextSize(2);
     tft_setCursor(0, 140);
@@ -209,7 +216,7 @@ static PT_THREAD (protothread_control(struct pt *pt))
     tft_setCursor(0, 100);
     tft_fillRoundRect(0,100, 240, 30, 1, ILI9340_BLACK);
     tft_setTextColor(ILI9340_WHITE); tft_setTextSize(2);
-    sprintf(buffer,"%d %6.2e", raw_adc, C);
+    sprintf(buffer,"%d %6.2e", raw_adc, C); // display the capacitance and the raw_adc 
     tft_writeString(buffer);
     PT_YIELD_TIME_msec(10);
     }
