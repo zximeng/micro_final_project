@@ -38,7 +38,7 @@
 char buffer[60];
 
 //initialize control signals
-static double alpha = 0.9;
+static double alpha = 0.98;
 int adc_val2 = 0;
 int old_val2 = 0;
 int adc_val3 = 0;
@@ -206,9 +206,10 @@ static PT_THREAD (protothread_control(struct pt *pt))
     //==== checking for proximity ========================
     raw_adc =  ReadADC10(0) ; 
     // cannot be here since the noise, need low pass it first
-    raw_adc = (int)(old_raw * alpha + (1-alpha)*raw_adc);// low pass the result
+    // set to 0.6 for a faster response. 
+    raw_adc = (int)(old_raw * 0.6 + (0.4)*raw_adc);// low pass the result
     
-    if(raw_adc < 110){ // check for human proximity
+    if(raw_adc < 0){ // check for human proximity
         prox = 1; // if there is, set prox and stop reading ADC
     }
     else prox = 0; // if there is no one, resume operation
