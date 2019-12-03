@@ -71,7 +71,8 @@ float C;
 volatile SpiChannel spiChn = SPI_CHANNEL2 ; // the SPI channel to use
 volatile int spiClkDiv = 4 ; // 10 MHz max speed for port expander!!
 
-
+// human proximity
+int prox =0;
 // dutycycles for motor 1 and motor 2
 int dutycycle1;
 int dutycycle2;
@@ -138,6 +139,7 @@ static PT_THREAD (protothread_control(struct pt *pt))
   tft_writeString("ADC     C\n");
   CTMUCONbits.ON = 1; // Turn on CTMU
   while(1) {
+      if(!prox){
 //===============Getting the first Control ADC value ==========================
     //adc_val1 = ReadADC10(0); 
     // adc_val1 is now CTMU
@@ -174,6 +176,7 @@ static PT_THREAD (protothread_control(struct pt *pt))
     SetDCOC2PWM(dutycycle2);
 
     old_val3 = adc_val3;
+        }// end of proximity checking 
 //===============Getting the CTMU ADC value ==========================
     //PT_YIELD_TIME_msec(100);
     // choose a current level
@@ -200,9 +203,17 @@ static PT_THREAD (protothread_control(struct pt *pt))
     // wait for complete
     while (!AD1CON1bits.DONE){}; // Wait for ADC conversion       
     // read the result of channel from the idle buffer
+    //==== checking for proximity ========================
     raw_adc =  ReadADC10(0) ; 
+    // cannot be here since the noise, need low pass it first
     raw_adc = (int)(old_raw * alpha + (1-alpha)*raw_adc);// low pass the result
+    
+    if(raw_adc < 110){ // check for human proximity
+        prox = 1; // if there is, set prox and stop reading ADC
+    }
+    else prox = 0; // if there is no one, resume operation
     old_raw = raw_adc;
+    
     // convert raw to resistance ADC reads 11 at zero resistance
     // Vref = Vdd = 3.3 ; 2 microsec charge pulse
     C = (I_set * 2e-6) / ((float)(raw_adc)/ADC_max * Vdd)  ; // c = q/v
