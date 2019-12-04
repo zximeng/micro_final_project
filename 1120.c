@@ -207,9 +207,9 @@ static PT_THREAD (protothread_control(struct pt *pt))
     raw_adc =  ReadADC10(0) ; 
     // cannot be here since the noise, need low pass it first
     // set to 0.6 for a faster response. 
-    raw_adc = (int)(old_raw * 0.6 + (0.4)*raw_adc);// low pass the result
+    raw_adc = (int)(old_raw * 0.9 + (0.1)*raw_adc);// low pass the result
     
-    if(raw_adc < 0){ // check for human proximity
+    if(raw_adc < 96){ // check for human proximity
         prox = 1; // if there is, set prox and stop reading ADC
     }
     else prox = 0; // if there is no one, resume operation
