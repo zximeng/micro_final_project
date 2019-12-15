@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
@@ -8,7 +9,13 @@
     <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
     <script src='main.js'></script>
 </head>
-<body style = "color: aliceblue;background-color:black;">
+<style>
+    table, th, td {
+      border: 1px solid black;
+    }
+    </style>
+
+<body style="color: rgb(0, 32, 59);background-color:rgb(255, 255, 255);">
     <h1>Capacitive Sensing Robot Arm</h1>
     <h2>Ximeng Zhang(xz737), Matt Daniel(mrd89)</h2>
     <a href="#Introduction-header">Introduction</a>
@@ -18,90 +25,161 @@
     <a href="#DesignResults-header"> Design Results</a>
     <a href="#Conclusion-header"> Conclusion</a>
     <a href="#Appendix-header">Appendix</a>
-        <hr>
-        <section>
-            <h2 id="Introduction-header"> Introduction</h2>
-                <p> For our final project, we built a 2 axis robot arm with a capacitive sensor on the final member, which will allow the robot to detect 
-                    a person near the robot. When there is an object detected, the arm will 
-                    stop depending on the measured capacitance.  The purpose of this 
-                    type of sensor is to allow robots and humans to work in the environment safely. 
-                    Functionally, this product will allow a user to move around the robot arm with 
-                    potentiometers to complete a task as desired. In addition to that, the user can 
-                    work alongside the robot with the risk of injury mitigated by the capacitance sensor 
-                    on the robot. </p>
+    <hr>
+    <section>
+        <h2 id="Introduction-header"> Introduction</h2>
+        <p> For our final project, we built a 2 axis robot arm with a capacitive sensor on the final member, which will
+            <br>allow the robot to detect
+            <br>a person near the robot. When there is an object detected, the arm will
+            <br>stop depending on the measured capacitance. The purpose of this
+            <br>type of sensor is to allow robots and humans to work in the environment safely.
+            <br>Functionally, this product will allow a user to move around the robot arm with
+            <br>potentiometers to complete a task as desired. In addition to that, the user can
+            <br>work alongside the robot with the risk of injury mitigated by the capacitance sensor
+            <br>on the robot. </p>
 
-        
-        </section>
-        <section>
-         <h2 id="HighLevelDesign-header"> High level Design </h2>
-        </section>
-        <hr>
-        <section>
-         <h2 id="HardwareDesign-header"> Hardware Design </h2>
-         <h4> 3d printed parts</h4>
-         <p>Our physical design consists of two servo motors with 180 degrees of rotation connected together
+
+    </section>
+    <section>
+        <h2 id="HighLevelDesign-header"> High level Design </h2>
+        <p>The actual design of the robot is based on using 2 servo motors connected directly
+        <br>together via 3d printed parts. Each of the joints is controlled by a PWM signal from the
+        <br>PIC32 processor. Each joint will have a corresponding potentiometer that the user can use
+        <br>to control the position of the arm. To do this, we used the on-board ADC to determine the 
+        <br>current potential of the potentiometer. From there we converted it to a % duty cycle to 
+        <br>control the servo motor position.</p>
+        <br>
+        <p>For the capacitive sensor portion, we used copper foil surrounding the arm (a rod) that will act 
+            <br>as a very simple capacitor. We had a function to measure the capacitance of the foil by charging
+            <br>it and measuring the voltage through ADC. The CTMU would charge the foil for certain amount 
+            <br>of time with pre-set current so we have the charge. Then we can calculate the Capacitance 
+            <br>using the formula C = q/v. 
+        </p>
+        <br>
+        <p>Then we low pass and detect the capacitance change, stop the arm where it is and stop reading
+            <br>from controls.
+        </p>
+    </section>
+    <hr>
+    <section>
+        <h2 id="HardwareDesign-header"> Hardware Design </h2>
+        <h4> 3d printed parts</h4>
+        <p>Our physical design consists of two servo motors with 180 degrees of rotation connected together
             <br> to make a simple arm with two degrees of freedom. The base motor is mounted with a 3D printed part
-             <br>onto a piece of 2x6 wood which serves as a base to keep the arm in place. Connected to the base servo
-             <br>is another 3D printed mount which connects to the second servo motor. Finally, a final mount connects
-             <br>the second servo to the arm which is simply a piece of carbon fiber tubing. Below is a diagram of the robot arm made.</p>
-          <p>Each of the pieces that were 3D printed were made using Autodesk Inventor. The design for this was to
-              <br>be as simple and effective as possible while using minimal material.  The bottom piece has four slots
-              <br>for wood screws to mount the piece to the wood base in addition to 2 5mm holes to place threaded heat
-              <br>set inserts for M3 screws. Each part made has these slots which allows us to easily attach the pieces
-              <br>to the motors and the carbon tube.</p>
-           <h3>Hardware Components Overview</h3>
-           <h4>Prototyping Board</h4>
-            <p>In addition to the robot arm hardware, we also designed a simple soldered prototyping board 
-                <br>which allows us to easily connect and disconnect the PIC32, motors, and power supply. 
-                <br>Additionally, it made the control of the robot very clean and consistent without any 
-                <br>possible loose wires. </p>
-        </section>
-        <hr>
-        <section>
-         <h2 id="SoftwareDesign-header"> Software Design </h2>
-        </section>
-        <hr>
-        <section>
-         <h2 id="DesignResults-header"> Design Result </h2>
-        </section>
-        <hr>
-         <section>
-         <h2 id="Conclusion-header">Conclusion </h2>
-        </section>
-        <hr>
-        <section>
-         <h2 id="Appendix-header"> Appendix </h2>
-         <h3>Appendix A</h3>    
-                    <p>The group approves this report for inclusion on the course website.
-                        <br>The group approves the video for inclusion on the course youtube channel.</p>
-         <h3>Appendix B</h3>
-         <h3>Appendix C</h3>
-         <h3>Appendix D</h3>
-            <p>
+            <br>onto a piece of 2x6 wood which serves as a base to keep the arm in place. Connected to the base servo
+            <br>is another 3D printed mount which connects to the second servo motor. Finally, a final mount connects
+            <br>the second servo to the arm which is simply a piece of carbon fiber tubing. Below is a diagram of the
+            robot arm made.</p>
+        <p>Each of the pieces that were 3D printed were made using Autodesk Inventor. The design for this was to
+            <br>be as simple and effective as possible while using minimal material. The bottom piece has four slots
+            <br>for wood screws to mount the piece to the wood base in addition to 2 5mm holes to place threaded heat
+            <br>set inserts for M3 screws. Each part made has these slots which allows us to easily attach the pieces
+            <br>to the motors and the carbon tube.</p>
+        <h3>Hardware Components Overview</h3>
+        <h4>Prototyping Board</h4>
+        <p>In addition to the robot arm hardware, we also designed a simple soldered prototyping board
+            <br>which allows us to easily connect and disconnect the PIC32, motors, and power supply.
+            <br>Additionally, it made the control of the robot very clean and consistent without any
+            <br>possible loose wires. </p>
+    </section>
+    <hr>
+    <section>
+        <h2 id="SoftwareDesign-header"> Software Design </h2>
+    </section>
+    <hr>
+    <section>
+        <h2 id="DesignResults-header"> Design Result </h2>
+    </section>
+    <hr>
+    <section>
+        <h2 id="Conclusion-header">Conclusion </h2>
+    </section>
+    <hr>
+    <section>
+        <h2 id="Appendix-header"> Appendix </h2>
+        <h3>Appendix A</h3>
+        <p>The group approves this report for inclusion on the course website.
+            <br>The group approves the video for inclusion on the course youtube channel.</p>
+        <h3>Appendix B</h3>
+        <h3>Appendix C</h3>
+        <h3>Appendix D</h3>
+        <p>
             <table style="width:100%">
-  <tr>
-    <th>Parts name</th>
-    <th>Vendor </th>
-    <th>Number </th>
-    <th>Price </th>
-    <th>Total</th>
-  </tr>
-  <tr>
-    <td>Servo Motor</td>
-    <td>Matt</td>
-    <td>2</td>
-    <td>8</td>
-    <td>16</td>
-  </tr>
-  <tr>
-    <td>Eve</td>
-    <td>Jackson</td>
-    <td>94</td>
-  </tr>
-</table>
-            </p>
-         <h3>Appendix E</h3>
-        </section>
+                <tr>
+                    <th>Parts name</th>
+                    <th>Vendor </th>
+                    <th>Number </th>
+                    <th>Price </th>
+                    <th>Total</th>
+                </tr>
+                <tr>
+                    <td>Servo Motor</td>
+                    <td>Matt</td>
+                    <td>2</td>
+                    <td>8</td>
+                    <td>16</td>
+                </tr>
+                <tr>
+                    <td>MicroStickII</td>
+                    <td>lab</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1</td>>
+                </tr>
+                <tr>
+                    <td>Big Board</td>
+                    <td>lab</td>
+                    <td>1</td>
+                    <td>10</td>
+                    <td>10</td>>
+                </tr>
+                <tr>
+                    <td>Power Supply</td>
+                    <td>lab</td>
+                    <td>1</td>
+                    <td>5</td>
+                    <td>5</td>>
+                </tr>
+                <tr>
+                    <td>Potentiometer </td>
+                    <td>lab</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>6</td>>
+                </tr>
+                <tr>
+                    <td>Foil</td>
+                    <td>lab</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>6</td>>
+                </tr>
+                <tr>
+                    <td>Solder Board </td>
+                    <td>lab</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>6</td>>
+                </tr>
+                <tr>
+                    <td>3D printed part </td>
+                    <td>Matt</td>
+                    <td></td>
+                    <td></td>
+                    <td>N/A</td>>
+                </tr>
+                <tr>
+                    <td>Total </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>40.6</td>>
+                </tr>
+            </table>
+        </p>
+        <h3>Appendix E</h3>
+    </section>
 </body>
-    <!-- remember to use the data file -->
+<!-- remember to use the data file -->
+
 </html>
